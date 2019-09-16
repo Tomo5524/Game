@@ -23,8 +23,10 @@ yelp = pygame.image.load("YelpIcon.png")
 
 #window.blit(bg,(0,0))
 #window.blit(char,(0,0))
+
 window.blit(pygame.transform.scale(bg,(1000,600)),(0,0))
 window.blit(pygame.transform.scale(char,(64,64)),(500,500))
+#window.blit(yelp,(500,100))
 
 pygame.display.update()
 
@@ -37,18 +39,28 @@ class Ship:
         self.visible = False # helper ship
         self.hp = 10
 
-
 class Enemy:
     def __init__(self,x,y,width,height):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.nums = 0
+        self.nums = 0 # how many of them can appear at a time
         self.vel = 12
+        self.hitbox = (self.x, self.y, 64, 64)
 
     def draw(self,window):
-        window.blit(yelp, (1000, 500))
+        window.blit(pygame.transform.scale(yelp, (48, 48)), (self.x, self.y))
+        self.hitbox = (self.x, self.y , 48, 48) # hit box moves along with enemy,
+        pygame.draw.rect(window, (250, 0, 0), self.hitbox, 2)
+        #pygame.draw.circle(window, (250,0,0), (self.x, self.y),10)
+
+    def collide(self,bullet):
+        # bullet collides with enemies
+        if self.hitbox[0] < bullet.x + bullet.radius and self.hitbox[0] + self.hitbox[2] > bullet.x:
+
+             return True
+        return False
 
 class Bullets:
     def __init__(self,x,y,radius,color):
@@ -65,44 +77,61 @@ class Bullets:
 def redraw():
     window.blit(pygame.transform.scale(bg, (1000, 600)), (0, 0))  # fix fps
     window.blit(pygame.transform.scale(char, (64, 64)), (ms.x, ms.y))
+
     for bullet in bullets:
         bullet.draw(window)
 
     for enemy in enemies:
         enemy.draw(window)
 
+    #pygame.draw.rect(window, (250, 0, 0), (100,100,64,64), 2)
+
     pygame.display.update()
 
 clock = pygame.time.Clock()
-pygame.time.set_timer(USEREVENT+1,500)
+pygame.time.set_timer(USEREVENT+1,1000)
 bullets = []
 enemies = []
 ms = Ship(500,500,64,64) # ms = mainship
+enemy1 = Enemy(1000, 100, 64, 64)
 
 vel = 10
 run = True
 while run:
-    clock.tick(60)
+    clock.tick(30)
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
             run = False
             pygame.quit()
 
+        # this is where Enemies are created
         if event.type == USEREVENT+1:
-            print('meow')
-            for i in range(10):
-                enemies.append(Enemy(1000, 900, 64, 64))
+            for i in range(5):
+                enemies.append(enemy1)
 
     for bullet in bullets:
+
+        # if enemy.hitbox[0] + enemy.hitbox[2] > bullet.x and bullet.x + bullet.radius > enemy.hitbox[0]:
+        # # if bullet.y - bullet.radius < goblin.hitbox[1] + goblin.hitbox[3] and bullet.y + bullet.radius > goblin.hitbox[1]:
+        # #     if bullet.x + bullet.radius > goblin.hitbox[0] and bullet.x - bullet.radius < goblin.hitbox[0] + goblin.hitbox[2]:
+        # #         #isHit = True
+        #     print('hit')
+
         if 0 < bullet.y < 600: # make sure it is not out of boundary
             bullet.y -= bullet.vel
+
         else:
             bullets.remove(bullet)
 
     for enemy in enemies:
-        if 0 < enemy.x:
+
+        if 0 < enemy.x + enemy.vel:
             enemy.x -= enemy.vel
+            # how to move hitbox along with ship
+
+        # if enemy.x < 500:
+        #     enemy.y += enemy.vel
 
         else:
             enemies.remove(enemy)
